@@ -21,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
         screenWidth >= 800 ? screenWidth * 0.3 : screenWidth * 0.8;
     double buttonWidth =
         screenWidth >= 800 ? screenWidth * 0.1 : screenWidth * 0.3;
-    print('Ruta actual: ${ModalRoute.of(context)?.settings.name}');
 
     return SafeArea(
       child: Scaffold(
