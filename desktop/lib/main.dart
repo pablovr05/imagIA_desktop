@@ -4,6 +4,11 @@ import 'package:desktop_window/desktop_window.dart';
 
 void main() {
   runApp(const MyApp());
+  const Color color1 = Color.fromARGB(255, 82, 78, 78);
+  const Color color2 = Color.fromARGB(255, 255, 43, 115);
+  const Color color3 = Color.fromARGB(255, 255, 90, 106);
+  const Color color4 = Color.fromARGB(255, 255, 149, 98);
+  const Color color5 = Color.fromARGB(255, 255, 205, 55);
   DesktopWindow.setWindowSize(const Size(600, 800));
 }
 
@@ -36,6 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: LoginView());
+    return const Scaffold(body: LoginScreen());
   }
 }
