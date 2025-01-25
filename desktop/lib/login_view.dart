@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'main_view.dart';
 
@@ -9,6 +12,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Controladores para los campos de texto
+  final TextEditingController _serverController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     const Color color1 = Color.fromARGB(255, 82, 78, 78);
@@ -65,9 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 color: Colors.black,
                               ),
-                              child: const TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
+                              child: TextField(
+                                controller: _serverController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   prefixIcon: Icon(
                                     Icons.cloud,
@@ -93,9 +102,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 color: Colors.black,
                               ),
-                              child: const TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
+                              child: TextField(
+                                controller: _usernameController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   prefixIcon: Icon(
                                     Icons.person,
@@ -115,15 +125,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 15),
+                            const SizedBox(height: 10),
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
                                 color: Colors.black,
                               ),
-                              child: const TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
+                              child: TextField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   prefixIcon: Icon(
                                     Icons.lock,
@@ -137,12 +149,42 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 35),
                             Center(
                               child: GestureDetector(
-                                onTap: () {
+                                onTap: () async {
+                                  // Validar los campos
+                                  if (_serverController.text.isEmpty ||
+                                      _usernameController.text.isEmpty ||
+                                      _passwordController.text.isEmpty) {
+                                    // Mostrar un mensaje de error si algún campo está vacío
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Todos los campos son obligatorios.',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  // Guardar los datos si todo está completo
+                                  await saveInDocument(
+                                    'ServerKey',
+                                    'UsernameKey',
+                                    _serverController.text,
+                                    _usernameController.text,
+                                  );
+                                  //print('Contraseña: ${_passwordController.text}');
+
+                                  // Navegar a la siguiente pantalla
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) =>
-                                            const main_view()),
+                                      builder: (context) => const main_view(),
+                                    ),
                                   );
                                 },
                                 child: Container(
@@ -177,5 +219,37 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+}
+
+Future<void> saveInDocument(String serverKey, String usernameKey, String server,
+    String username) async {
+  try {
+    const path = './data/';
+    final directory = Directory(path);
+
+    // Crear la carpeta si no existe
+    if (!directory.existsSync()) {
+      await directory.create(recursive: true);
+    }
+
+    final file = File('${directory.path}/data.json');
+
+    // Crear el archivo si no existe
+    if (!file.existsSync()) {
+      await file.create();
+    }
+
+    // Datos a guardar
+    final Map<String, String> data = {
+      serverKey: server,
+      usernameKey: username,
+    };
+
+    // Guardar los datos en formato JSON
+    await file.writeAsString(jsonEncode(data));
+    print("Datos guardados correctamente.");
+  } catch (e) {
+    print('Error al guardar los datos: $e');
   }
 }
