@@ -12,18 +12,44 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Controladores para los campos de texto
   final TextEditingController _serverController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _loadDataFromFile();
+  }
+
+  // Cargar datos del archivo JSON si existe
+  Future<void> _loadDataFromFile() async {
+    try {
+      const path = './data/';
+      final file = File('$path/data.json');
+
+      if (file.existsSync()) {
+        final String content = await file.readAsString();
+        final Map<String, dynamic> data = jsonDecode(content);
+
+        if (data.containsKey('ServerKey') && data.containsKey('UsernameKey')) {
+          _serverController.text = data['ServerKey'];
+          _usernameController.text = data['UsernameKey'];
+        }
+      }
+    } catch (e) {
+      print('Error al cargar los datos: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    /*
     const Color color1 = Color.fromARGB(255, 82, 78, 78);
     const Color color2 = Color.fromARGB(255, 255, 43, 115);
     const Color color3 = Color.fromARGB(255, 255, 90, 106);
     const Color color4 = Color.fromARGB(255, 255, 149, 98);
-    const Color color5 = Color.fromARGB(255, 255, 205, 55);
+    const Color color5 = Color.fromARGB(255, 255, 205, 55);*/
     double screenWidth = MediaQuery.of(context).size.width;
     double containerWidth =
         screenWidth >= 800 ? screenWidth * 0.3 : screenWidth * 0.8;
