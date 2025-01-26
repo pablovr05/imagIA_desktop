@@ -202,37 +202,42 @@ class _LoginScreenState extends State<LoginScreen> {
                                     final ApiService apiService = ApiService(
                                         baseUrl: _serverController.text.trim());
 
-                                    // Probar la conexión
-                                    await apiService.testConnection();
-
-                                    // Guardar los datos si todo está completo
-                                    await saveInDocument(
-                                      'ServerKey',
-                                      'UsernameKey',
-                                      _serverController.text,
-                                      _usernameController.text,
+                                    // Llamar al método login
+                                    final response = await apiService.login(
+                                      _usernameController.text.trim(),
+                                      _passwordController.text.trim(),
+                                      context, // Pasar el contexto al método
                                     );
 
-                                    // Navegar a la siguiente pantalla
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const main_view(),
-                                      ),
-                                    );
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Conexión al servidor exitosa.',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w700),
-                                          textAlign: TextAlign.center,
+                                    // Si la respuesta no es vacía, significa éxito
+                                    if (response.isNotEmpty) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Inicio de sesión exitoso.',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w700),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          backgroundColor: Colors.green,
                                         ),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
+                                      );
+                                      await saveInDocument(
+                                        'ServerKey',
+                                        'UsernameKey',
+                                        _serverController.text,
+                                        _usernameController.text,
+                                      );
+                                      // Navegar a la siguiente vista
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const main_view()),
+                                      );
+                                    }
                                   } catch (e) {
                                     // Mostrar un mensaje de error en caso de que falle la conexión
                                     ScaffoldMessenger.of(context).showSnackBar(
