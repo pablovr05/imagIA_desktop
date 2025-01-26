@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'api_service.dart';
 import 'package:flutter/material.dart';
 import 'main_view.dart';
 
@@ -196,22 +197,43 @@ class _LoginScreenState extends State<LoginScreen> {
                                     return;
                                   }
 
-                                  // Guardar los datos si todo está completo
-                                  await saveInDocument(
-                                    'ServerKey',
-                                    'UsernameKey',
-                                    _serverController.text,
-                                    _usernameController.text,
-                                  );
-                                  //print('Contraseña: ${_passwordController.text}');
+                                  // Enviar el login para verificar
+                                  try {
+                                    final ApiService apiService = ApiService(
+                                        baseUrl: _serverController.text.trim());
 
-                                  // Navegar a la siguiente pantalla
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const main_view(),
-                                    ),
-                                  );
+                                    // Probar la conexión
+                                    await apiService.testConnection();
+
+                                    // Si no se lanza una excepción, la conexión fue exitosa
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Conexión al servidor exitosa.',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    // Mostrar un mensaje de error en caso de que falle la conexión
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Error al conectar con el servidor',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    print(e);
+                                  }
                                 },
                                 child: Container(
                                   width: buttonWidth,
