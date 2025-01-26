@@ -6,12 +6,13 @@ class main_view extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: Colors.black,
         body: Center(
           child: Center(
             child: Text(
-              "Hello",
+              "Hola!",
               style: TextStyle(fontSize: 38, color: Colors.white),
               textAlign: TextAlign.center,
             ),

@@ -205,7 +205,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                     // Probar la conexión
                                     await apiService.testConnection();
 
-                                    // Si no se lanza una excepción, la conexión fue exitosa
+                                    // Guardar los datos si todo está completo
+                                    await saveInDocument(
+                                      'ServerKey',
+                                      'UsernameKey',
+                                      _serverController.text,
+                                      _usernameController.text,
+                                    );
+
+                                    // Navegar a la siguiente pantalla
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const main_view(),
+                                      ),
+                                    );
+
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(

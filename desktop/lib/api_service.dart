@@ -19,7 +19,6 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error de conexión');
-      print(e);
     }
   }
 }
