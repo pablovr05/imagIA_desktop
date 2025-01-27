@@ -40,6 +40,34 @@ class ApiService {
           ),
         );
         return {};
+      } else if (response.statusCode == 404) {
+        // Mostrar error con SnackBar para credenciales inexistentes
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Usuario no encontrado',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return {};
+      } else if (response.statusCode == 403) {
+        // Mostrar error con SnackBar para credenciales sin permiso
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Acceso denegado. No tienes permiso para acceder a esta sección.',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return {};
       } else {
         // Otros errores
         throw Exception(
