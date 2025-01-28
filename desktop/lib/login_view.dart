@@ -45,12 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    /*
-    const Color color1 = Color.fromARGB(255, 82, 78, 78);
-    const Color color2 = Color.fromARGB(255, 255, 43, 115);
-    const Color color3 = Color.fromARGB(255, 255, 90, 106);
-    const Color color4 = Color.fromARGB(255, 255, 149, 98);
-    const Color color5 = Color.fromARGB(255, 255, 205, 55);*/
     double screenWidth = MediaQuery.of(context).size.width;
     double containerWidth =
         screenWidth >= 800 ? screenWidth * 0.3 : screenWidth * 0.8;
@@ -211,19 +205,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                     // Si la respuesta no es vacía, significa éxito
                                     if (response.isNotEmpty) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Inicio de sesión exitoso.',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w700),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
                                       await saveInDocument(
                                         'ServerKey',
                                         'UsernameKey',
