@@ -216,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const main_view()),
+                                                const MainView()),
                                       );
                                     }
                                   } catch (e) {
