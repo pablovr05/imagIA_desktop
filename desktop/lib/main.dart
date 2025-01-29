@@ -10,9 +10,11 @@ void main() async {
 
   // Configurar propiedades iniciales de la ventana
   WindowOptions windowOptions = const WindowOptions(
-    title: 'ImagIA', // Aquí estableces el título
+    title: 'ImagIA',
     size: Size(600, 800),
+    minimumSize: Size(600, 800),
   );
+
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
