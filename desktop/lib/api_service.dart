@@ -11,7 +11,7 @@ class ApiService {
   // Método para iniciar sesión
   Future<Map<String, dynamic>> login(
       String nickname, String password, BuildContext context) async {
-    final url = Uri.parse('https://$baseUrl/api/users/login');
+    final url = Uri.parse('https://$baseUrl/api/usuaris/login');
 
     try {
       final response = await http.post(
@@ -75,6 +75,30 @@ class ApiService {
       }
     } catch (e) {
       // Manejar errores generales
+      throw Exception('Error de conexión o datos inválidos: $e');
+    }
+  }
+
+  // Método para obtener todos los usuarios
+  Future<Map<String, dynamic>> getAllUsers(BuildContext context) async {
+    final url = Uri.parse('https://$baseUrl/api/admin/usuaris');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 403) {
+        print("403");
+        return {};
+      } else {
+        throw Exception(
+            'Error del servidor. Código de estado: ${response.statusCode}');
+      }
+    } catch (e) {
       throw Exception('Error de conexión o datos inválidos: $e');
     }
   }
