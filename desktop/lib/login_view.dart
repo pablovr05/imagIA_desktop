@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Server',
+                              'Servidor',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 20,
@@ -103,14 +103,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Icons.cloud,
                                     color: Colors.white,
                                   ),
-                                  hintText: 'Server',
+                                  hintText: 'URL del servidor ex: example.com',
                                   hintStyle: TextStyle(color: Colors.white),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 15),
                             const Text(
-                              'Username',
+                              'Usuario',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 20,
@@ -132,14 +132,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Icons.person,
                                     color: Colors.white,
                                   ),
-                                  hintText: 'Username',
+                                  hintText: 'Usuario',
                                   hintStyle: TextStyle(color: Colors.white),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 15),
                             const Text(
-                              'Password',
+                              'Contraseña',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 20,
@@ -162,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Icons.lock,
                                     color: Colors.white,
                                   ),
-                                  hintText: 'Password',
+                                  hintText: 'Contraseña',
                                   hintStyle: TextStyle(color: Colors.white),
                                 ),
                               ),
@@ -245,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   child: const Center(
                                     child: Text(
-                                      'Log In',
+                                      'Iniciar Sesión',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 18,
