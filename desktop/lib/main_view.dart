@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 
@@ -50,66 +49,138 @@ class _MainViewState extends State<MainView> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        body: Padding(
-          padding: const EdgeInsets.only(top: 40.0),
-          child: Center(
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.9,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const Text(
-                    'Lista de Usuarios',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  Expanded(
-                    child: users.isEmpty
-                        ? const Center(child: CircularProgressIndicator())
-                        : ListView.builder(
-                            itemCount: users.length,
-                            itemBuilder: (context, index) {
-                              return CustomListItem(user: users[index]);
-                            },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isSmallScreen = constraints.maxWidth < 800;
+
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            backgroundColor: Colors.white,
+            body: Row(
+              children: [
+                if (!isSmallScreen)
+                  Container(
+                    width: constraints.maxWidth * 0.2,
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'ADMIN DASHBOARD',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 28,
+                            decoration: TextDecoration.underline,
+                            decorationThickness: 2.0,
                           ),
+                        ),
+                        const SizedBox(height: 150),
+                        Expanded(
+                          child: ListView(
+                            children: const [
+                              ListTile(
+                                title: Text('Usuarios',
+                                    style: TextStyle(color: Colors.black)),
+                                tileColor: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            print('Desconectarse');
+                          },
+                          icon: const Icon(Icons.logout, color: Colors.black),
+                          label: const Text('Desconectarse',
+                              style: TextStyle(color: Colors.black)),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                Expanded(
+                  child: Container(
+                    color: Colors.black,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 32.0),
+                          decoration: const BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(color: Colors.white70)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  flex: isSmallScreen ? 3 : 5,
+                                  child: const Text('Usuario',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold))),
+                              const Expanded(
+                                  flex: 1,
+                                  child: Text('Teléfono  ',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold))),
+                              if (!isSmallScreen)
+                                const Expanded(
+                                    flex: 3,
+                                    child: Text('   Creado en',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold))),
+                              if (!isSmallScreen)
+                                const Expanded(
+                                    flex: 3,
+                                    child: Text(' Actualizado en',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold))),
+                              Expanded(
+                                  flex: isSmallScreen ? 2 : 1,
+                                  child: const Text('   Rol',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold))),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: users.isEmpty
+                              ? const Center(child: CircularProgressIndicator())
+                              : SingleChildScrollView(
+                                  child: Column(
+                                    children: users
+                                        .map((user) => CustomListItem(
+                                            user: user,
+                                            isSmallScreen: isSmallScreen))
+                                        .toList(),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
-class CustomListItem extends StatefulWidget {
+class CustomListItem extends StatelessWidget {
   final dynamic user;
-  const CustomListItem({required this.user, super.key});
-
-  @override
-  _CustomListItemState createState() => _CustomListItemState();
-}
-
-class _CustomListItemState extends State<CustomListItem> {
-  late String selectedType;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedType =
-        widget.user['type_id'] ?? 'FREE'; // Asegúrate de usar 'type_id'
-  }
+  final bool isSmallScreen;
+  const CustomListItem(
+      {required this.user, required this.isSmallScreen, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -128,30 +199,35 @@ class _CustomListItemState extends State<CustomListItem> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Text(widget.user['nickname'] ?? 'N/A',
-              style: const TextStyle(color: Colors.white)),
-          Text(widget.user['phone'] ?? 'N/A',
-              style: const TextStyle(color: Colors.white)),
-          Text(widget.user['created_at'] ?? 'N/A',
-              style: const TextStyle(color: Colors.white)),
-          Text(widget.user['updated_at'] ?? 'N/A',
-              style: const TextStyle(color: Colors.white)),
+          Expanded(
+              flex: isSmallScreen ? 3 : 5,
+              child: Text(user['nickname'] ?? 'N/A',
+                  style: const TextStyle(color: Colors.white))),
+          Expanded(
+              flex: 1,
+              child: Text(user['phone'] ?? 'N/A',
+                  style: const TextStyle(color: Colors.white))),
+          if (!isSmallScreen)
+            Expanded(
+                flex: 3,
+                child: Text(user['created_at'] ?? 'N/A',
+                    style: const TextStyle(color: Colors.white))),
+          if (!isSmallScreen)
+            Expanded(
+                flex: 3,
+                child: Text(user['updated_at'] ?? 'N/A',
+                    style: const TextStyle(color: Colors.white))),
           DropdownButton<String>(
             dropdownColor: Colors.black,
-            value: selectedType,
+            value: user['type_id'],
             items: ['ADMINISTRADOR', 'FREE', 'PREMIUM']
                 .map((String type) => DropdownMenuItem(
-                      value: type,
-                      child: Text(type,
-                          style: const TextStyle(color: Colors.white)),
-                    ))
+                    value: type,
+                    child: Text(type,
+                        style: const TextStyle(color: Colors.white))))
                 .toList(),
             onChanged: (String? newValue) {
-              setState(() {
-                selectedType = newValue!;
-              });
               print('Se ha cambiado a $newValue');
             },
           ),
@@ -161,7 +237,7 @@ class _CustomListItemState extends State<CustomListItem> {
   }
 }
 
-// Cargar datos del archivo JSON si existe
+// Cargar datos del archivo JSON
 Future<dynamic> _loadURL() async {
   try {
     const path = './data/';
