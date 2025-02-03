@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:desktop/login_view.dart';
 import 'package:flutter/material.dart';
 import 'api_service.dart';
+import 'package:intl/intl.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -36,8 +38,8 @@ class _MainViewState extends State<MainView> {
                 "nickname": user["nickname"] ?? "N/A",
                 "email": user["email"] ?? "N/A",
                 "type_id": user["type_id"] ?? "FREE",
-                "created_at": user["created_at"] ?? "yyyy-mm-dd HH:MM:SS",
-                "updated_at": user["updated_at"] ?? "yyyy-mm-dd HH:MM:SS",
+                "created_at": _formatDate(user["created_at"]),
+                "updated_at": _formatDate(user["updated_at"]),
               };
             }).toList() ??
             [];
@@ -45,6 +47,24 @@ class _MainViewState extends State<MainView> {
     } catch (e) {
       print('Error fetching users: $e');
     }
+  }
+
+  String _formatDate(String? date) {
+    if (date == null || date.isEmpty) return "N/A";
+    try {
+      DateTime parsedDate = DateTime.parse(date);
+      return DateFormat('yyyy-MM-dd HH:mm').format(parsedDate);
+    } catch (e) {
+      return "N/A";
+    }
+  }
+
+  // Nueva función para actualizar el tipo de usuario
+  void updateUserType(int index, String newType) {
+    setState(() {
+      users[index]['type_id'] = newType;
+    });
+    print('Usuario ${users[index]['nickname']} ha cambiado a $newType');
   }
 
   @override
@@ -57,6 +77,54 @@ class _MainViewState extends State<MainView> {
           debugShowCheckedModeBanner: false,
           home: Scaffold(
             backgroundColor: Colors.white,
+            appBar: isSmallScreen
+                ? AppBar(
+                    backgroundColor: Colors.black,
+                    title: const Text('ADMIN DASHBOARD',
+                        style: TextStyle(color: Colors.white)),
+                    leading: Builder(
+                      builder: (context) => IconButton(
+                        icon: const Icon(Icons.menu, color: Colors.white),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                    ),
+                  )
+                : null,
+            drawer: isSmallScreen
+                ? Drawer(
+                    child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      const DrawerHeader(
+                        decoration: BoxDecoration(color: Colors.black),
+                        child: Text(
+                          'ADMIN DASHBOARD',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        title: const Text('Usuarios'),
+                        onTap: () {},
+                      ),
+                      const SizedBox(height: 490),
+                      ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.black),
+                        title: const Text('Desconectarse'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const MainView()),
+                          );
+                        },
+                      ),
+                    ],
+                  ))
+                : null,
             body: Row(
               children: [
                 if (!isSmallScreen)
@@ -91,7 +159,11 @@ class _MainViewState extends State<MainView> {
                         ),
                         TextButton.icon(
                           onPressed: () {
-                            print('Desconectarse');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const MainView()),
+                            );
                           },
                           icon: const Icon(Icons.logout, color: Colors.black),
                           label: const Text('Desconectarse',
@@ -107,14 +179,13 @@ class _MainViewState extends State<MainView> {
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 32.0),
-                          decoration: const BoxDecoration(
-                            border: Border(
-                                bottom: BorderSide(color: Colors.white70)),
-                          ),
-                          child: Row(
-                            children: [
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 32.0),
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                  bottom: BorderSide(color: Colors.white70)),
+                            ),
+                            child: Row(children: [
                               Expanded(
                                   flex: isSmallScreen ? 3 : 5,
                                   child: const Text('Usuario',
@@ -122,43 +193,48 @@ class _MainViewState extends State<MainView> {
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold))),
                               const Expanded(
-                                  flex: 1,
-                                  child: Text('Teléfono  ',
+                                  flex: 3,
+                                  child: Text(
+                                      '                                Teléfono',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold))),
                               if (!isSmallScreen)
                                 const Expanded(
-                                    flex: 3,
-                                    child: Text('   Creado en',
+                                    flex: 4,
+                                    child: Text('Creado en',
                                         style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold))),
                               if (!isSmallScreen)
                                 const Expanded(
-                                    flex: 3,
-                                    child: Text(' Actualizado en',
+                                    flex: 4,
+                                    child: Text('Actualizado en',
                                         style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold))),
                               Expanded(
-                                  flex: isSmallScreen ? 2 : 1,
-                                  child: const Text('   Rol',
+                                  flex: isSmallScreen ? 2 : 2,
+                                  child: const Text('Rol',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold))),
-                            ],
-                          ),
-                        ),
+                            ])),
                         Expanded(
                           child: users.isEmpty
                               ? const Center(child: CircularProgressIndicator())
                               : SingleChildScrollView(
                                   child: Column(
                                     children: users
-                                        .map((user) => CustomListItem(
-                                            user: user,
-                                            isSmallScreen: isSmallScreen))
+                                        .asMap()
+                                        .entries
+                                        .map((entry) => CustomListItem(
+                                              user: entry.value,
+                                              isSmallScreen: isSmallScreen,
+                                              onUserTypeChange: (newType) =>
+                                                  updateUserType(
+                                                      entry.key, newType),
+                                            ))
                                         .toList(),
                                   ),
                                 ),
@@ -180,7 +256,10 @@ class CustomListItem extends StatelessWidget {
   final dynamic user;
   final bool isSmallScreen;
   const CustomListItem(
-      {required this.user, required this.isSmallScreen, super.key});
+      {required this.user,
+      required this.isSmallScreen,
+      super.key,
+      required void Function(dynamic newType) onUserTypeChange});
 
   @override
   Widget build(BuildContext context) {
