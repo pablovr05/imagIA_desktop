@@ -59,7 +59,6 @@ class _MainViewState extends State<MainView> {
     }
   }
 
-  // Nueva función para actualizar el tipo de usuario
   void updateUserType(int index, String newType) {
     setState(() {
       users[index]['type_id'] = newType;
@@ -80,8 +79,24 @@ class _MainViewState extends State<MainView> {
             appBar: isSmallScreen
                 ? AppBar(
                     backgroundColor: Colors.black,
-                    title: const Text('ADMIN DASHBOARD',
-                        style: TextStyle(color: Colors.white)),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'ADMIN DASHBOARD',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        ElevatedButton(
+                          onPressed: fetchUsers, // Recargar usuarios
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.all(8),
+                            shape: const CircleBorder(),
+                          ),
+                          child: const Icon(Icons.refresh, color: Colors.black),
+                        ),
+                      ],
+                    ),
                     leading: Builder(
                       builder: (context) => IconButton(
                         icon: const Icon(Icons.menu, color: Colors.white),
@@ -118,7 +133,7 @@ class _MainViewState extends State<MainView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const MainView()),
+                                builder: (context) => const LoginScreen()),
                           );
                         },
                       ),
@@ -162,7 +177,7 @@ class _MainViewState extends State<MainView> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const MainView()),
+                                  builder: (context) => const LoginScreen()),
                             );
                           },
                           icon: const Icon(Icons.logout, color: Colors.black),
@@ -178,6 +193,19 @@ class _MainViewState extends State<MainView> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
+                        if (!isSmallScreen)
+                          // Botón de Recarga
+                          Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 16),
+                              child: ElevatedButton(
+                                onPressed: fetchUsers, // Recargar usuarios
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white),
+                                child: const Icon(Icons.refresh,
+                                    color: Colors.black),
+                              )),
                         Container(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 32.0),
@@ -192,13 +220,18 @@ class _MainViewState extends State<MainView> {
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold))),
-                              const Expanded(
+                              Expanded(
                                   flex: 3,
-                                  child: Text(
-                                      '                                Teléfono',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold))),
+                                  child: isSmallScreen
+                                      ? const Text('Teléfono',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold))
+                                      : const Text(
+                                          '                                Teléfono',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold))),
                               if (!isSmallScreen)
                                 const Expanded(
                                     flex: 4,
