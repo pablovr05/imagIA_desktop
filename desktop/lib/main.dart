@@ -1,7 +1,7 @@
+import 'login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'login_view.dart';
-import 'main_view.dart';
+//import 'main_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +46,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    //return const Scaffold(body: LoginScreen());
-    return const Scaffold(body: MainView());
+    return const Scaffold(body: LoginScreen());
+    //return const Scaffold(body: MainView());
   }
 }

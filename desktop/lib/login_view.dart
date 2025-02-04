@@ -17,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  late int adminId;
+
   @override
   void initState() {
     super.initState();
@@ -200,17 +202,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                     final response = await apiService.login(
                                       _usernameController.text.trim(),
                                       _passwordController.text.trim(),
-                                      context, // Pasar el contexto al método
+                                      context,
                                     );
 
                                     // Si la respuesta no es vacía, significa éxito
                                     if (response.isNotEmpty) {
                                       await saveInDocument(
-                                        'ServerKey',
-                                        'UsernameKey',
-                                        _serverController.text,
-                                        _usernameController.text,
-                                      );
+                                          'ServerKey',
+                                          'UsernameKey',
+                                          _serverController.text,
+                                          _usernameController.text,
+                                          'token',
+                                          getToken());
                                       // Navegar a la siguiente vista
                                       Navigator.push(
                                         context,
@@ -272,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 Future<void> saveInDocument(String serverKey, String usernameKey, String server,
-    String username) async {
+    String username, String tokenKey, Future<String> tokenFuture) async {
   try {
     const path = './data/';
     final directory = Directory(path);
@@ -288,11 +291,12 @@ Future<void> saveInDocument(String serverKey, String usernameKey, String server,
     if (!file.existsSync()) {
       await file.create();
     }
-
+    final String token = await tokenFuture;
     // Datos a guardar
-    final Map<String, String> data = {
+    final Map<String, dynamic> data = {
       serverKey: server,
       usernameKey: username,
+      tokenKey: token,
     };
 
     // Guardar los datos en formato JSON
@@ -301,4 +305,8 @@ Future<void> saveInDocument(String serverKey, String usernameKey, String server,
   } catch (e) {
     print('Error al guardar los datos: $e');
   }
+}
+
+Future<String> getToken() async {
+  return await ApiService.getAuthToken();
 }

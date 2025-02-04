@@ -14,6 +14,7 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   List<dynamic> users = [];
+  static String baseUrl = '';
 
   @override
   void initState() {
@@ -30,7 +31,8 @@ class _MainViewState extends State<MainView> {
       }
 
       ApiService apiService = ApiService(baseUrl: baseUrl);
-      final fetchedUsers = await apiService.getAllUsers(context);
+      final fetchedUsers =
+          await apiService.getAllUsers(getAdminId(), getToken(), context);
       setState(() {
         users = (fetchedUsers['data']['users'] as List<dynamic>?)?.map((user) {
               return {
@@ -87,7 +89,7 @@ class _MainViewState extends State<MainView> {
                           style: TextStyle(color: Colors.white),
                         ),
                         ElevatedButton(
-                          onPressed: fetchUsers, // Recargar usuarios
+                          onPressed: fetchUsers,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             padding: const EdgeInsets.all(8),
@@ -200,7 +202,7 @@ class _MainViewState extends State<MainView> {
                               padding: const EdgeInsets.symmetric(
                                   vertical: 10, horizontal: 16),
                               child: ElevatedButton(
-                                onPressed: fetchUsers, // Recargar usuarios
+                                onPressed: fetchUsers,
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white),
                                 child: const Icon(Icons.refresh,
@@ -258,17 +260,34 @@ class _MainViewState extends State<MainView> {
                               ? const Center(child: CircularProgressIndicator())
                               : SingleChildScrollView(
                                   child: Column(
-                                    children: users
-                                        .asMap()
-                                        .entries
-                                        .map((entry) => CustomListItem(
-                                              user: entry.value,
-                                              isSmallScreen: isSmallScreen,
-                                              onUserTypeChange: (newType) =>
-                                                  updateUserType(
-                                                      entry.key, newType),
-                                            ))
-                                        .toList(),
+                                    children:
+                                        users.asMap().entries.map((entry) {
+                                      return FutureBuilder<String>(
+                                        future: _loadURL(),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const CircularProgressIndicator();
+                                          }
+                                          if (snapshot.hasError ||
+                                              !snapshot.hasData ||
+                                              snapshot.data!.isEmpty) {
+                                            return const Text(
+                                                'Error al cargar la URL del servidor');
+                                          }
+
+                                          return CustomListItem(
+                                            user: entry.value,
+                                            isSmallScreen: isSmallScreen,
+                                            onUserTypeChange: (newType) =>
+                                                updateUserType(
+                                                    entry.key, newType),
+                                            apiService: ApiService(
+                                                baseUrl: snapshot.data!),
+                                          );
+                                        },
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
                         ),
@@ -288,11 +307,16 @@ class _MainViewState extends State<MainView> {
 class CustomListItem extends StatelessWidget {
   final dynamic user;
   final bool isSmallScreen;
-  const CustomListItem(
-      {required this.user,
-      required this.isSmallScreen,
-      super.key,
-      required void Function(dynamic newType) onUserTypeChange});
+  final Function(String newType) onUserTypeChange;
+  final ApiService apiService;
+
+  const CustomListItem({
+    required this.user,
+    required this.isSmallScreen,
+    required this.onUserTypeChange,
+    required this.apiService,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -339,8 +363,30 @@ class CustomListItem extends StatelessWidget {
                     child: Text(type,
                         style: const TextStyle(color: Colors.white))))
                 .toList(),
-            onChanged: (String? newValue) {
-              print('Se ha cambiado a $newValue');
+            onChanged: (String? newValue) async {
+              if (newValue != null && newValue != user['type_id']) {
+                try {
+                  // Obtener adminId y token
+                  int adminId = await ApiService.getUserId();
+                  String token = await ApiService.getAuthToken();
+
+                  // Llamar a la API para actualizar el plan del usuario
+                  await apiService.updateUserPlan(
+                    Future.value(adminId),
+                    Future.value(token),
+                    user['nickname'],
+                    newValue,
+                    context,
+                  );
+
+                  // Notificar el cambio
+                  onUserTypeChange(newValue);
+                } catch (e) {
+                  _showSnackBar(context,
+                      'No puedes cambiar el rol de un Administrador debido a permisos insuficientes.');
+                  print('Error al actualizar el tipo de usuario: $e');
+                }
+              }
             },
           ),
         ],
@@ -350,7 +396,7 @@ class CustomListItem extends StatelessWidget {
 }
 
 // Cargar datos del archivo JSON
-Future<dynamic> _loadURL() async {
+Future<String> _loadURL() async {
   try {
     const path = './data/';
     final file = File('$path/data.json');
@@ -360,7 +406,6 @@ Future<dynamic> _loadURL() async {
       final Map<String, dynamic> data = jsonDecode(content);
 
       if (data.containsKey('ServerKey')) {
-        print(data['serverKey']);
         return data['ServerKey'];
       }
     }
@@ -368,4 +413,26 @@ Future<dynamic> _loadURL() async {
     print('Error al cargar los datos: $e');
   }
   return '';
+}
+
+Future<String> getToken() async {
+  return await ApiService.getAuthToken();
+}
+
+Future<int> getAdminId() async {
+  return await ApiService.getUserId();
+}
+
+void _showSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        message,
+        style:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        textAlign: TextAlign.center,
+      ),
+      backgroundColor: Colors.red,
+    ),
+  );
 }
