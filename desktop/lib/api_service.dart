@@ -31,8 +31,6 @@ class ApiService {
 
         // Guardar en SharedPreferences
         await _saveCredentials(userId, authToken);
-
-        print(responseData);
         return responseData;
       } else if (response.statusCode == 401) {
         _showSnackBar(context, 'Credenciales inválidas. Verifique sus datos.');
@@ -150,6 +148,40 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error de conexión o datos inválidos: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> showLogs(Future<int> idFuture,
+      Future<String> tokenFuture, BuildContext context) async {
+    final url = Uri.parse('https://$baseUrl/api/admin/logs');
+
+    final String token = await tokenFuture;
+    final int id = await idFuture;
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': id.toString(),
+          'token': token,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 403) {
+        _showSnackBar(context, 'Acceso denegado. No tienes permiso.');
+        return {};
+      } else if (response.statusCode == 404) {
+        _showSnackBar(context, 'Usuario no encontrado.');
+        return {};
+      } else {
+        throw Exception(
+            'Error del servidor. Código de estado: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
     }
   }
 }
