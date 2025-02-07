@@ -248,7 +248,7 @@ class _MainViewState extends State<StatView> {
                       children: [
                         const Text(
                           "Estadísticas de Uso",
-                          style: TextStyle(color: Colors.white, fontSize: 20),
+                          style: TextStyle(color: Colors.white, fontSize: 40),
                         ),
                         const SizedBox(height: 20),
                         BarChartWidget(),
@@ -310,10 +310,11 @@ class BarChartPainter extends CustomPainter {
     final maxValue = data.values.isNotEmpty
         ? data.values.reduce((a, b) => a > b ? a : b)
         : 1;
-    final barWidthFactor = (size.width * 0.7) / maxValue;
+    final barWidthFactor = (size.width * 0.6) / maxValue;
 
     double yOffset = 0.0;
-    double labelWidth = size.width * 0.22;
+    double labelWidth =
+        size.width * 0.2; // Espacio reservado para las etiquetas
 
     for (var entry in data.entries) {
       final key = entry.key;
@@ -323,21 +324,23 @@ class BarChartPainter extends CustomPainter {
       final rect = Rect.fromLTWH(labelWidth, yOffset, barWidth, barHeight);
       canvas.drawRect(rect, paint);
 
-      // Dibujar la etiqueta (izquierda)
+      // Dibujar la etiqueta (derecha a izquierda, pegado a la barra)
       final keyTextPainter = TextPainter(
         text: TextSpan(text: key, style: textStyle),
-        textAlign: TextAlign.right,
-        textDirection: ui.TextDirection.rtl,
+        textAlign: TextAlign.right, // Alineado a la derecha
+        textDirection: ui.TextDirection.rtl, // Dirección de texto RTL
       );
       keyTextPainter.layout();
       keyTextPainter.paint(
-          canvas, Offset(0, yOffset + (barHeight - keyTextPainter.height) / 2));
+          canvas,
+          Offset(labelWidth - keyTextPainter.width,
+              yOffset + (barHeight - keyTextPainter.height) / 2));
 
-      // Dibujar el valor (sobre la barra)
+      // Dibujar el valor (sobre la barra, pegado a la derecha)
       final valueTextPainter = TextPainter(
         text: TextSpan(text: value.toString(), style: textStyle),
         textAlign: TextAlign.left,
-        textDirection: ui.TextDirection.ltr,
+        textDirection: ui.TextDirection.rtl, // Dirección de texto RTL
       );
       valueTextPainter.layout();
       valueTextPainter.paint(
@@ -366,7 +369,7 @@ class BarChartWidget extends StatelessWidget {
     'REGISTER': 14,
     'LOGIN': 18,
     'SMS': 9,
-    'QUOTE': 0,
+    'QUOTE': 1000,
   };
 
   @override
