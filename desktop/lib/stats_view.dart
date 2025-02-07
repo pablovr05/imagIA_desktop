@@ -7,7 +7,6 @@ import 'package:desktop/logs_view.dart';
 import 'package:desktop/main_view.dart';
 import 'package:flutter/material.dart';
 import 'api_service.dart';
-import 'package:intl/intl.dart';
 
 class StatView extends StatefulWidget {
   const StatView({super.key});
@@ -17,8 +16,7 @@ class StatView extends StatefulWidget {
 }
 
 class _MainViewState extends State<StatView> {
-  List<dynamic> logsList = [];
-  static String baseUrl = '';
+  Map<String, int> logData = {};
 
   @override
   void initState() {
@@ -40,16 +38,36 @@ class _MainViewState extends State<StatView> {
 
       // Acceso correcto a los logs
       setState(() {
-        logsList = (fetchedLogs["data"]["all_logs"]["logs"] as List<dynamic>?)
-                ?.map((log) {
-              return {
-                "type": log["type"] ?? "N/A",
-                "category": log["category"] ?? "N/A",
-                "prompt": log["prompt"] ?? "N/A",
-                "created_at": log["created_at"] ?? "N/A",
+        final data = fetchedLogs["data"];
+
+        if (data is Map<String, dynamic> && data.containsKey("by_category")) {
+          final byCategory = data["by_category"];
+
+          if (byCategory is Map<String, dynamic> &&
+              byCategory.containsKey("counts")) {
+            final counts = byCategory["counts"];
+
+            if (counts is Map<String, dynamic>) {
+              logData = {
+                "BASE DE DATOS": counts["BASE DE DATOS"] ?? 0,
+                "SERVER": counts["SERVER"] ?? 0,
+                "PROMPT": counts["PROMPT"] ?? 0,
+                "ADMIN": counts["ADMIN"] ?? 0,
+                "MODELS": counts["MODELS"] ?? 0,
+                "VALIDATE": counts["VALIDATE"] ?? 0,
+                "REGISTER": counts["REGISTER"] ?? 0,
+                "LOGIN": counts["LOGIN"] ?? 0,
+                "SMS": counts["SMS"] ?? 0,
               };
-            }).toList() ??
-            [];
+            } else {
+              print("Error: 'counts' no es un Map.");
+            }
+          } else {
+            print("Error: 'by_category' no contiene 'counts'.");
+          }
+        } else {
+          print("Error: 'data' no contiene 'by_category'.");
+        }
       });
     } catch (e) {
       print("Error fetching logs: $e");
@@ -242,16 +260,18 @@ class _MainViewState extends State<StatView> {
                   ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          "Estadísticas de Uso",
+                          "ESTADISTICAS DE ITERACIONES",
                           style: TextStyle(color: Colors.white, fontSize: 40),
                         ),
                         const SizedBox(height: 20),
-                        BarChartWidget(),
+                        BarChartWidget(
+                          data: logData,
+                        ),
                       ],
                     ),
                   ),
@@ -306,7 +326,7 @@ class BarChartPainter extends CustomPainter {
       ..color = Colors.blue
       ..style = PaintingStyle.fill;
 
-    final textStyle = TextStyle(color: Colors.white, fontSize: 14);
+    const textStyle = TextStyle(color: Colors.white, fontSize: 14);
     final maxValue = data.values.isNotEmpty
         ? data.values.reduce((a, b) => a > b ? a : b)
         : 1;
@@ -314,7 +334,7 @@ class BarChartPainter extends CustomPainter {
 
     double yOffset = 0.0;
     double labelWidth =
-        size.width * 0.2; // Espacio reservado para las etiquetas
+        size.width * 0.2; // Espacio desde el navbar a las etiquetas
 
     for (var entry in data.entries) {
       final key = entry.key;
@@ -324,11 +344,10 @@ class BarChartPainter extends CustomPainter {
       final rect = Rect.fromLTWH(labelWidth, yOffset, barWidth, barHeight);
       canvas.drawRect(rect, paint);
 
-      // Dibujar la etiqueta (derecha a izquierda, pegado a la barra)
       final keyTextPainter = TextPainter(
         text: TextSpan(text: key, style: textStyle),
-        textAlign: TextAlign.right, // Alineado a la derecha
-        textDirection: ui.TextDirection.rtl, // Dirección de texto RTL
+        textAlign: TextAlign.right,
+        textDirection: ui.TextDirection.rtl,
       );
       keyTextPainter.layout();
       keyTextPainter.paint(
@@ -340,7 +359,7 @@ class BarChartPainter extends CustomPainter {
       final valueTextPainter = TextPainter(
         text: TextSpan(text: value.toString(), style: textStyle),
         textAlign: TextAlign.left,
-        textDirection: ui.TextDirection.rtl, // Dirección de texto RTL
+        textDirection: ui.TextDirection.rtl,
       );
       valueTextPainter.layout();
       valueTextPainter.paint(
@@ -359,18 +378,9 @@ class BarChartPainter extends CustomPainter {
 }
 
 class BarChartWidget extends StatelessWidget {
-  final Map<String, int> data = {
-    'BASE DE DATOS': 12,
-    'SERVER': 15,
-    'PROMPT': 10,
-    'ADMIN': 20,
-    'MODELS': 8,
-    'VALIDATE': 6,
-    'REGISTER': 14,
-    'LOGIN': 18,
-    'SMS': 9,
-    'QUOTE': 1000,
-  };
+  final Map<String, int> data;
+
+  const BarChartWidget({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {

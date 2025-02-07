@@ -18,7 +18,6 @@ class LogView extends StatefulWidget {
 
 class _MainViewState extends State<LogView> {
   List<dynamic> logsList = [];
-  static String baseUrl = '';
 
   @override
   void initState() {

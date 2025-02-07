@@ -17,7 +17,6 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   List<dynamic> users = [];
-  static String baseUrl = '';
 
   @override
   void initState() {

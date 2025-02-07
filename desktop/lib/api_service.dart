@@ -23,7 +23,6 @@ class ApiService {
           'password': password,
         }),
       );
-      int a = response.statusCode;
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final userId = (responseData['data']['userId'] as int?) ?? 0;
