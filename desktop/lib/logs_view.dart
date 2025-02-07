@@ -18,6 +18,91 @@ class LogView extends StatefulWidget {
 
 class _MainViewState extends State<LogView> {
   List<dynamic> logsList = [];
+  String? selectedLogType = 'TODOS';
+  String? selectedCategory = 'TODOS';
+  // Función para obtener el ícono para el tipo
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case "DEBUG":
+        return Icons.bug_report;
+      case "INFO":
+        return Icons.info;
+      case "WARN":
+        return Icons.warning;
+      case "ERROR":
+        return Icons.error;
+      default:
+        return Icons.help;
+    }
+  }
+
+// Función para obtener el color para el tipo
+  Color _getColorForType(String type) {
+    switch (type) {
+      case "DEBUG":
+        return Colors.blue;
+      case "INFO":
+        return Colors.green;
+      case "WARN":
+        return Colors.orange;
+      case "ERROR":
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+// Función para obtener el ícono para la categoría
+  IconData _getIconForCategory(String category) {
+    switch (category) {
+      case "BASE DE DATOS":
+        return Icons.storage;
+      case "SERVER":
+        return Icons.computer;
+      case "PROMPT":
+        return Icons.message;
+      case "ADMIN":
+        return Icons.admin_panel_settings;
+      case "MODELS":
+        return Icons.data_usage;
+      case "VALIDATE":
+        return Icons.check_circle;
+      case "REGISTER":
+        return Icons.app_registration;
+      case "LOGIN":
+        return Icons.login;
+      case "SMS":
+        return Icons.sms;
+      default:
+        return Icons.help;
+    }
+  }
+
+// Función para obtener el color para la categoría
+  Color _getColorForCategory(String category) {
+    switch (category) {
+      case "BASE DE DATOS":
+        return Colors.blue;
+      case "SERVER":
+        return Colors.deepPurple;
+      case "PROMPT":
+        return Colors.teal;
+      case "ADMIN":
+        return Colors.brown;
+      case "MODELS":
+        return Colors.indigo;
+      case "VALIDATE":
+        return Colors.green;
+      case "REGISTER":
+        return Colors.cyan;
+      case "LOGIN":
+        return Colors.orange;
+      case "SMS":
+        return Colors.pink;
+      default:
+        return Colors.grey;
+    }
+  }
 
   @override
   void initState() {
@@ -55,6 +140,67 @@ class _MainViewState extends State<LogView> {
     }
   }
 
+  Future<void> filterLogsByType(String type) async {
+    try {
+      String baseUrl = await _loadURL();
+      if (baseUrl.isEmpty) {
+        print('Error: No se pudo cargar la URL del servidor.');
+        return;
+      }
+
+      ApiService apiService = ApiService(baseUrl: baseUrl);
+      final fetchedLogs =
+          await apiService.showLogs(getAdminId(), getToken(), context);
+
+      // Filtra los logs por el tipo seleccionado
+      setState(() {
+        logsList =
+            (fetchedLogs["data"]["by_type"]["logs"][type] as List<dynamic>? ??
+                    [])
+                .map((log) {
+          return {
+            "type": log["type"] ?? "N/A",
+            "category": log["category"] ?? "N/A",
+            "prompt": log["prompt"] ?? "N/A",
+            "created_at": _formatDate(log["created_at"]),
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print("Error fetching logs by type: $e");
+    }
+  }
+
+  Future<void> filterLogsByCategory(String category) async {
+    try {
+      String baseUrl = await _loadURL();
+      if (baseUrl.isEmpty) {
+        print('Error: No se pudo cargar la URL del servidor.');
+        return;
+      }
+
+      ApiService apiService = ApiService(baseUrl: baseUrl);
+      final fetchedLogs =
+          await apiService.showLogs(getAdminId(), getToken(), context);
+
+      setState(() {
+        logsList = (fetchedLogs["data"]["by_category"]["logs"][category]
+                    as List<dynamic>? ??
+                [])
+            .map((log) {
+          return {
+            "type": log["type"] ?? "N/A",
+            "category": log["category"] ?? "N/A",
+            "prompt": log["prompt"] ?? "N/A",
+            "created_at": _formatDate(log["created_at"]),
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print("Error fetching logs by type: $e");
+    }
+  }
+
   String _formatDate(String? date) {
     if (date == null || date.isEmpty) return "N/A";
     try {
@@ -75,15 +221,110 @@ class _MainViewState extends State<LogView> {
           debugShowCheckedModeBanner: false,
           home: Scaffold(
             backgroundColor: Colors.black,
+            // Dentro del `AppBar`, donde tienes los `DropdownButton` actuales:
             appBar: isSmallScreen
                 ? AppBar(
                     backgroundColor: Colors.black,
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'ADMIN DASHBOARD',
-                          style: TextStyle(color: Colors.white),
+                        Row(
+                          children: [
+                            // Dropdown para tipos de log
+                            DropdownButton<String>(
+                              value: selectedLogType,
+                              hint: const Text(
+                                'Tipo',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              dropdownColor: Colors.black,
+                              items: <String>[
+                                'TODOS',
+                                'DEBUG',
+                                'INFO',
+                                'WARN',
+                                'ERROR'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _getIconForType(value),
+                                        color: _getColorForType(value),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(value,
+                                          style: TextStyle(
+                                              color: _getColorForType(value),
+                                              fontSize: 15)),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedLogType = newValue!;
+                                });
+                                if (newValue != "TODOS") {
+                                  filterLogsByType(
+                                      newValue!); // Filtra los logs por tipo
+                                } else {
+                                  fetchLogs(); // Carga todos los logs
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                            // Dropdown para categorías de log
+                            DropdownButton<String>(
+                              value: selectedCategory,
+                              hint: const Text(
+                                'Categoría',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              dropdownColor: Colors.black,
+                              items: <String>[
+                                'TODOS',
+                                'BASE DE DATOS',
+                                'SERVER',
+                                'PROMPT',
+                                'ADMIN',
+                                'MODELS',
+                                'VALIDATE',
+                                'REGISTER',
+                                'LOGIN',
+                                'SMS'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _getIconForCategory(value),
+                                        color: _getColorForCategory(value),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(value,
+                                          style: TextStyle(
+                                              color:
+                                                  _getColorForCategory(value))),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedCategory = newValue!;
+                                });
+                                if (newValue != "TODOS") {
+                                  filterLogsByCategory(
+                                      newValue!); // Filtra los logs por tipo
+                                } else {
+                                  fetchLogs(); // Carga todos los logs
+                                } // Filtra los logs por categoría
+                              },
+                            ),
+                          ],
                         ),
                         ElevatedButton(
                           onPressed: fetchLogs,
@@ -104,6 +345,7 @@ class _MainViewState extends State<LogView> {
                     ),
                   )
                 : null,
+
             drawer: isSmallScreen
                 ? Drawer(
                     child: ListView(
@@ -254,6 +496,133 @@ class _MainViewState extends State<LogView> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (!isSmallScreen) ...[
+                              const SizedBox(width: 450),
+                              const Text(
+                                'FILTRAR POR TIPOS: ',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                              Expanded(
+                                child: DropdownButton<String>(
+                                  value: selectedLogType,
+                                  hint: const Text(
+                                    'Tipo',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  dropdownColor: Colors.black,
+                                  items: <String>[
+                                    'TODOS',
+                                    'DEBUG',
+                                    'INFO',
+                                    'WARN',
+                                    'ERROR'
+                                  ].map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            _getIconForType(value),
+                                            color: _getColorForType(value),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(value,
+                                              style: TextStyle(
+                                                  color:
+                                                      _getColorForType(value),
+                                                  fontSize: 15)),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedLogType = newValue!;
+                                    });
+                                    if (newValue != "TODOS") {
+                                      filterLogsByType(newValue!);
+                                    } else {
+                                      fetchLogs();
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 100),
+                              const Text(
+                                'FILTRAR POR CATEGORIAS: ',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                              Expanded(
+                                child: DropdownButton<String>(
+                                  value: selectedCategory,
+                                  hint: const Text(
+                                    'Categoría',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  dropdownColor: Colors.black,
+                                  items: <String>[
+                                    'TODOS',
+                                    'BASE DE DATOS',
+                                    'SERVER',
+                                    'PROMPT',
+                                    'ADMIN',
+                                    'MODELS',
+                                    'VALIDATE',
+                                    'REGISTER',
+                                    'LOGIN',
+                                    'SMS'
+                                  ].map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            _getIconForCategory(value),
+                                            color: _getColorForCategory(value),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(value,
+                                              style: TextStyle(
+                                                  color: _getColorForCategory(
+                                                      value))),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedCategory = newValue!;
+                                    });
+                                    if (newValue != "TODOS") {
+                                      filterLogsByCategory(newValue!);
+                                    } else {
+                                      fetchLogs();
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 100),
+                              ElevatedButton(
+                                onPressed: fetchLogs,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  padding: const EdgeInsets.all(8),
+                                  shape: const CircleBorder(),
+                                ),
+                                child: const Icon(Icons.refresh,
+                                    color: Colors.black),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 5),
                         Container(
                           padding: EdgeInsets.symmetric(
                               vertical: 10.0,
@@ -315,7 +684,29 @@ class _MainViewState extends State<LogView> {
                         ),
                         Expanded(
                           child: logsList.isEmpty
-                              ? const Center(child: CircularProgressIndicator())
+                              ? Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        "No hay logs disponibles",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 18),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedLogType = 'TODOS';
+                                            selectedCategory = 'TODOS';
+                                          });
+                                          fetchLogs();
+                                        },
+                                        child: const Text("Recargar"),
+                                      ),
+                                    ],
+                                  ),
+                                )
                               : ListView.builder(
                                   itemCount: logsList.length,
                                   itemBuilder: (context, index) {
@@ -325,9 +716,7 @@ class _MainViewState extends State<LogView> {
                                       category: log['category'] ?? 'GENERAL',
                                       message: log['prompt'] ??
                                           'Mensaje no disponible',
-                                      date: log['date'] ??
-                                          DateFormat('yyyy-MM-dd HH:mm')
-                                              .format(DateTime.now()),
+                                      date: log['created_at'] ?? "N/A",
                                     );
                                   },
                                 ),

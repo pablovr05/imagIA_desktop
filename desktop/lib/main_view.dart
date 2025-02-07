@@ -88,7 +88,7 @@ class _MainViewState extends State<MainView> {
                       children: [
                         const Text(
                           'ADMIN DASHBOARD',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.white, fontSize: 20),
                         ),
                         ElevatedButton(
                           onPressed: fetchUsers,

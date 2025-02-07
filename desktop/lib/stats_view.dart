@@ -92,7 +92,7 @@ class _MainViewState extends State<StatView> {
                       children: [
                         const Text(
                           'ADMIN DASHBOARD',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.white, fontSize: 20),
                         ),
                         ElevatedButton(
                           onPressed: fetchLogs,
@@ -262,13 +262,20 @@ class _MainViewState extends State<StatView> {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment:
+                          MainAxisAlignment.start, // Mueve el título más arriba
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        const SizedBox(
+                            height: 30), // Agrega más espacio arriba del título
+                        Text(
                           "ESTADISTICAS DE ITERACIONES",
-                          style: TextStyle(color: Colors.white, fontSize: 40),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isSmallScreen ? 30 : 40),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(
+                            height: 40), // Más espacio antes del gráfico
                         BarChartWidget(
                           data: logData,
                         ),
@@ -317,6 +324,7 @@ class BarChartPainter extends CustomPainter {
   final Map<String, int> data;
   final double barHeight = 30.0;
   final double spacing = 15.0;
+  final double separatorWidth = 2.0;
 
   BarChartPainter({required this.data});
 
@@ -325,6 +333,10 @@ class BarChartPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.blue
       ..style = PaintingStyle.fill;
+
+    final separatorPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = separatorWidth;
 
     const textStyle = TextStyle(color: Colors.white, fontSize: 14);
     final maxValue = data.values.isNotEmpty
@@ -335,6 +347,7 @@ class BarChartPainter extends CustomPainter {
     double yOffset = 0.0;
     double labelWidth =
         size.width * 0.2; // Espacio desde el navbar a las etiquetas
+    double separatorX = labelWidth + 1;
 
     for (var entry in data.entries) {
       final key = entry.key;
@@ -352,7 +365,7 @@ class BarChartPainter extends CustomPainter {
       keyTextPainter.layout();
       keyTextPainter.paint(
           canvas,
-          Offset(labelWidth - keyTextPainter.width,
+          Offset(labelWidth - keyTextPainter.width - 15,
               yOffset + (barHeight - keyTextPainter.height) / 2));
 
       // Dibujar el valor (sobre la barra, pegado a la derecha)
@@ -366,7 +379,9 @@ class BarChartPainter extends CustomPainter {
           canvas,
           Offset(labelWidth + barWidth + 5,
               yOffset + (barHeight - valueTextPainter.height) / 2));
-
+      // Dibujar la línea separadora blanca
+      canvas.drawLine(Offset(separatorX, 0), Offset(separatorX, size.height),
+          separatorPaint);
       yOffset += barHeight + spacing;
     }
   }
