@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'package:intl/intl.dart';
 
+import 'stats_view.dart';
+
 class MainView extends StatefulWidget {
   const MainView({super.key});
 
@@ -149,7 +151,13 @@ class _MainViewState extends State<MainView> {
                       ListTile(
                         leading: const Icon(Icons.bar_chart),
                         title: const Text('Estadísticas'),
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const StatView(),
+                              ));
+                        },
                       ),
                       const SizedBox(height: 400),
                       ListTile(
@@ -223,10 +231,10 @@ class _MainViewState extends State<MainView> {
                                 tileColor: Colors.white,
                                 onTap: () {
                                   Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const LogView()),
-                                  );
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const StatView(),
+                                      ));
                                 },
                               ),
                             ],

@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'package:intl/intl.dart';
 
+import 'stats_view.dart';
+
 class LogView extends StatefulWidget {
   const LogView({super.key});
 
@@ -144,7 +146,13 @@ class _MainViewState extends State<LogView> {
                       ListTile(
                         leading: const Icon(Icons.bar_chart),
                         title: const Text('Estadísticas'),
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const StatView(),
+                              ));
+                        },
                       ),
                       const SizedBox(height: 400),
                       ListTile(
@@ -220,7 +228,7 @@ class _MainViewState extends State<LogView> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => const LogView()),
+                                        builder: (context) => const StatView()),
                                   );
                                 },
                               ),
