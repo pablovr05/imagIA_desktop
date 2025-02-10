@@ -58,6 +58,7 @@ class _MainViewState extends State<StatView> {
                 "REGISTER": counts["REGISTER"] ?? 0,
                 "LOGIN": counts["LOGIN"] ?? 0,
                 "SMS": counts["SMS"] ?? 0,
+                "QUOTE": counts["QOUTE"] ?? 0,
               };
             } else {
               print("Error: 'counts' no es un Map.");

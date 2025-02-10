@@ -73,6 +73,8 @@ class _MainViewState extends State<LogView> {
         return Icons.login;
       case "SMS":
         return Icons.sms;
+      case "QUOTE":
+        return Icons.confirmation_num;
       default:
         return Icons.help;
     }
@@ -99,6 +101,8 @@ class _MainViewState extends State<LogView> {
         return Colors.orange;
       case "SMS":
         return Colors.pink;
+      case "QUOTE":
+        return Colors.amber;
       default:
         return Colors.grey;
     }
@@ -293,7 +297,8 @@ class _MainViewState extends State<LogView> {
                                 'VALIDATE',
                                 'REGISTER',
                                 'LOGIN',
-                                'SMS'
+                                'SMS',
+                                'QUOTE'
                               ].map<DropdownMenuItem<String>>((String value) {
                                 return DropdownMenuItem<String>(
                                   value: value,
@@ -576,7 +581,8 @@ class _MainViewState extends State<LogView> {
                                     'VALIDATE',
                                     'REGISTER',
                                     'LOGIN',
-                                    'SMS'
+                                    'SMS',
+                                    'QUOTE'
                                   ].map<DropdownMenuItem<String>>(
                                       (String value) {
                                     return DropdownMenuItem<String>(
