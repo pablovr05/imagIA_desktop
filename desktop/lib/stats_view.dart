@@ -381,8 +381,10 @@ class BarChartPainter extends CustomPainter {
           Offset(labelWidth + barWidth + 5,
               yOffset + (barHeight - valueTextPainter.height) / 2));
       // Dibujar la línea separadora blanca
-      canvas.drawLine(Offset(separatorX, 0), Offset(separatorX, size.height),
-          separatorPaint);
+      double margin = 60;
+      canvas.drawLine(Offset(separatorX, -10),
+          Offset(separatorX, size.height + margin), separatorPaint);
+
       yOffset += barHeight + spacing;
     }
   }
