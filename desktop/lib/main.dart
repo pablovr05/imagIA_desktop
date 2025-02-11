@@ -1,5 +1,4 @@
 import 'package:desktop/login_view.dart';
-import 'package:desktop/main_view.dart';
 
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';

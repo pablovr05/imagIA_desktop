@@ -42,24 +42,13 @@ class _MainViewState extends State<MainView> {
                 "nickname": user["nickname"] ?? "N/A",
                 "email": user["email"] ?? "N/A",
                 "type_id": user["type_id"] ?? "FREE",
-                "created_at": _formatDate(user["created_at"]),
-                "updated_at": _formatDate(user["updated_at"]),
+                "quote": user["remainingQuote"] ?? "N/A",
               };
             }).toList() ??
             [];
       });
     } catch (e) {
       print('Error fetching users: $e');
-    }
-  }
-
-  String _formatDate(String? date) {
-    if (date == null || date.isEmpty) return "N/A";
-    try {
-      DateTime parsedDate = DateTime.parse(date);
-      return DateFormat('yyyy-MM-dd HH:mm').format(parsedDate);
-    } catch (e) {
-      return "N/A";
     }
   }
 
@@ -288,33 +277,25 @@ class _MainViewState extends State<MainView> {
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold))),
                               Expanded(
-                                  flex: 3,
+                                  flex: isSmallScreen ? 3 : 5,
                                   child: isSmallScreen
                                       ? const Text('Teléfono',
                                           style: TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold))
-                                      : const Text(
-                                          '                                Teléfono',
+                                      : const Text('Teléfono',
                                           style: TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold))),
                               if (!isSmallScreen)
                                 const Expanded(
                                     flex: 4,
-                                    child: Text('Creado en',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold))),
-                              if (!isSmallScreen)
-                                const Expanded(
-                                    flex: 4,
-                                    child: Text('Actualizado en',
+                                    child: Text('Cuota',
                                         style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold))),
                               Expanded(
-                                  flex: isSmallScreen ? 2 : 2,
+                                  flex: isSmallScreen ? 2 : 1,
                                   child: const Text('Rol',
                                       style: TextStyle(
                                           color: Colors.white,
@@ -349,6 +330,7 @@ class _MainViewState extends State<MainView> {
                                                     entry.key, newType),
                                             apiService: ApiService(
                                                 baseUrl: snapshot.data!),
+                                            fetchUsers: fetchUsers,
                                           );
                                         },
                                       );
@@ -374,12 +356,14 @@ class CustomListItem extends StatelessWidget {
   final bool isSmallScreen;
   final Function(String newType) onUserTypeChange;
   final ApiService apiService;
+  final Function fetchUsers;
 
   const CustomListItem({
     required this.user,
     required this.isSmallScreen,
     required this.onUserTypeChange,
     required this.apiService,
+    required this.fetchUsers,
     super.key,
   });
 
@@ -402,23 +386,71 @@ class CustomListItem extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-              flex: isSmallScreen ? 3 : 5,
-              child: Text(user['nickname'] ?? 'N/A',
-                  style: const TextStyle(color: Colors.white))),
+            flex: 3,
+            child: Text(user['nickname'] ?? 'N/A',
+                style: const TextStyle(color: Colors.white)),
+          ),
           Expanded(
-              flex: 1,
-              child: Text(user['phone'] ?? 'N/A',
-                  style: const TextStyle(color: Colors.white))),
+            flex: isSmallScreen ? 3 : 3,
+            child: Text(user['phone'] ?? 'N/A',
+                style: const TextStyle(color: Colors.white)),
+          ),
           if (!isSmallScreen)
             Expanded(
-                flex: 3,
-                child: Text(user['created_at'] ?? 'N/A',
-                    style: const TextStyle(color: Colors.white))),
-          if (!isSmallScreen)
-            Expanded(
-                flex: 3,
-                child: Text(user['updated_at'] ?? 'N/A',
-                    style: const TextStyle(color: Colors.white))),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    user['quote'] ?? 'N/A',
+                    style: const TextStyle(color: Colors.white),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(
+                      width: 8), // Espacio pequeño entre texto e ícono
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.white),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          TextEditingController quoteController =
+                              TextEditingController(
+                                  text: user['remainingQuote']);
+                          return AlertDialog(
+                            title: const Text("Editar Cuota"),
+                            content: TextField(
+                              controller: quoteController,
+                              decoration: const InputDecoration(
+                                  hintText: "Ingrese la nueva cuota"),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text("Cancelar"),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  try {
+                                    Navigator.of(context).pop();
+                                    onUserQuoteChange(quoteController.text,
+                                        context, fetchUsers);
+                                  } catch (e) {
+                                    _showSnackBar(context,
+                                        "Error al actualizar la cuota.");
+                                  }
+                                },
+                                child: const Text("Guardar"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          const Spacer(),
           DropdownButton<String>(
             dropdownColor: Colors.black,
             value: user['type_id'],
@@ -431,11 +463,8 @@ class CustomListItem extends StatelessWidget {
             onChanged: (String? newValue) async {
               if (newValue != null && newValue != user['type_id']) {
                 try {
-                  // Obtener adminId y token
                   int adminId = await ApiService.getUserId();
                   String token = await ApiService.getAuthToken();
-
-                  // Llamar a la API para actualizar el plan del usuario
                   await apiService.updateUserPlan(
                     Future.value(adminId),
                     Future.value(token),
@@ -443,16 +472,12 @@ class CustomListItem extends StatelessWidget {
                     newValue,
                     context,
                   );
-
                   _showSnackBarPositive(
                       context, 'Se ha cambiado el rol exitosamente.');
-
-                  // Notificar el cambio
                   onUserTypeChange(newValue);
                 } catch (e) {
                   _showSnackBar(context,
                       'No puedes cambiar el rol de un Administrador debido a permisos insuficientes.');
-                  print('Error al actualizar el tipo de usuario: $e');
                 }
               }
             },
@@ -460,6 +485,46 @@ class CustomListItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showSnackBarPositive(BuildContext context, String message) {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    scaffoldMessenger.showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  Future<void> onUserQuoteChange(
+      String text, BuildContext context, Function fetchUsers) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      int adminId = await ApiService.getUserId();
+      String token = await ApiService.getAuthToken();
+
+      await apiService.updateUserQuote(
+        Future.value(adminId),
+        Future.value(token),
+        Future.value(user['nickname']),
+        Future.value(text),
+        context,
+      );
+
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+            content: Text("Cuota actualizada exitosamente"),
+            backgroundColor: Colors.green),
+      );
+
+      // Llamar a fetchUsers para actualizar la lista
+      fetchUsers();
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+            content: Text("Error al actualizar la cuota"),
+            backgroundColor: Colors.red),
+      );
+    }
   }
 }
 

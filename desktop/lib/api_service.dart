@@ -183,4 +183,47 @@ class ApiService {
       throw Exception('Error: $e');
     }
   }
+
+  Future<Map<String, dynamic>> updateUserQuote(
+      Future<int> idFuture,
+      Future<String> tokenFuture,
+      Future<String> nameFuture,
+      Future<String> availableRequestsFuture,
+      BuildContext context) async {
+    final url = Uri.parse(
+        'https://$baseUrl/api/admin/usuaris/pla/setAvailableRequests');
+
+    final String token = await tokenFuture;
+    final int id = await idFuture;
+    final String nickname = await nameFuture;
+    final String availableRequests = await availableRequestsFuture;
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'adminId': id.toString(),
+          'token': token,
+          'nickname': nickname,
+          'availableRequests': availableRequests,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 403) {
+        _showSnackBar(context, 'Acceso denegado. No tienes permiso.');
+        return {};
+      } else if (response.statusCode == 404) {
+        _showSnackBar(context, 'Usuario no encontrado.');
+        return {};
+      } else {
+        throw Exception(
+            'Error del servidor. Código de estado: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
 }
